@@ -1,0 +1,53 @@
+version: '3'
+services:
+
+  frontend:
+    image: node:16-alpine
+    working_dir: /app/frontend
+    volumes:
+      - ./frontend:/app/frontend
+    command: sh -c 'yarn install && yarn run dev'
+    ports:
+      - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+  backend:
+    image: strapi/strapi
+    environment:
+      DATABASE_CLIENT: ${DATABASE_CLIENT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_SSL: ${DATABASE_SSL}
+    working_dir: /app/backend
+    volumes:
+      - ./backend:/app/backend
+    ports:
+      - '1337:1337'
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    volumes:
+      - dbdata:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: strapi
+      MYSQL_DATABASE: strapi
+      MYSQL_USER: strapi
+      MYSQL_PASSWORD: strapi
+
+volumes:
+  dbdata:
+    driver: local
+  dzbldata:
